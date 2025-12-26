@@ -3,11 +3,11 @@ package com.maksym.todoapi.controller;
 
 import com.maksym.todoapi.model.Task;
 import com.maksym.todoapi.service.TaskService;
+import com.maksym.todoapi.dto.TaskCreateRequest;
+import com.maksym.todoapi.dto.TaskResponse;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -32,5 +32,29 @@ public class TaskController {
         return taskService.getById(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @PostMapping
+    public ResponseEntity<TaskResponse> create(
+            @Valid @RequestBody TaskCreateRequest request
+    ) {
+        Task task = taskService.create(
+                request.getTitle(),
+                request.getDescription(),
+                request.getPriority(),
+                request.getDueAt()
+        );
+
+        TaskResponse response = new TaskResponse(
+                task.getId(),
+                task.getTitle(),
+                task.getDescription(),
+                task.getStatus(),
+                task.getPriority(),
+                task.getCreatedAt(),
+                task.getDueAt()
+        );
+
+        return ResponseEntity.status(201).body(response);
     }
 }

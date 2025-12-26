@@ -1,0 +1,31 @@
+package com.maksym.todoapi.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
+import java.time.Instant;
+
+public class TaskCreateRequest {
+    @NotBlank
+    @Size(max = 100)
+    private String title;
+
+    @Size(max = 500)
+    private String description;
+
+    @NotNull
+    private Integer priority;
+
+    private Instant dueAt;
+
+    public String getTitle() { return title; }
+    public String getDescription() { return description; }
+    public Integer getPriority() { return priority; }
+    public Instant getDueAt() { return dueAt; }
+
+    public void setTitle(String title) { this.title = title; }
+    public void setDescription(String description) { this.description = description; }
+    public void setPriority(Integer priority) { this.priority = priority; }
+    public void setDueAt(Instant dueAt) { this.dueAt = dueAt; }
+}

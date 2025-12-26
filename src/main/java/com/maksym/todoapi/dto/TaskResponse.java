@@ -1,9 +1,12 @@
-package com.maksym.todoapi.model;
+package com.maksym.todoapi.dto;
+
+import com.maksym.todoapi.model.TaskStatus;
 
 import java.time.Instant;
 import java.util.UUID;
 
-public class Task {
+public class TaskResponse {
+
     private UUID id;
     private String title;
     private String description;
@@ -12,7 +15,15 @@ public class Task {
     private Instant createdAt;
     private Instant dueAt;
 
-    public Task(UUID id, String title, String description, TaskStatus status, Integer priority, Instant createdAt, Instant dueAt) {
+    public TaskResponse(
+            UUID id,
+            String title,
+            String description,
+            TaskStatus status,
+            Integer priority,
+            Instant createdAt,
+            Instant dueAt
+    ) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -29,11 +40,4 @@ public class Task {
     public Integer getPriority() { return priority; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getDueAt() { return dueAt; }
-
-    public void setTitle(String title) { this.title = title; }
-    public void setDescription(String description) { this.description = description; }
-    public void setStatus(TaskStatus status) { this.status = status; }
-    public void setPriority(Integer priority) { this.priority = priority; }
-    public void setDueAt(Instant dueAt) { this.dueAt = dueAt; }
-
 }

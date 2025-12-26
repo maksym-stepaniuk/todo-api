@@ -43,4 +43,19 @@ public class TaskService {
     public Optional<Task> getById(UUID id) {
         return Optional.ofNullable(storage.get(id));
     }
+
+    public Task create(String title, String description, Integer priority, Instant dueAt) {
+        Task task = new Task(
+                UUID.randomUUID(),
+                title,
+                description,
+                TaskStatus.TODO,
+                priority,
+                Instant.now(),
+                dueAt
+        );
+
+        storage.put(task.getId(), task);
+        return task;
+    }
 }

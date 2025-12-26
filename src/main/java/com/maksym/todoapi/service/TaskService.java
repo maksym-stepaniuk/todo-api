@@ -58,4 +58,39 @@ public class TaskService {
         storage.put(task.getId(), task);
         return task;
     }
+
+    public Optional<Task> update(
+            UUID id,
+            String title,
+            String description,
+            Integer priority,
+            Instant dueAt
+    ) {
+        Task task = storage.get(id);
+
+        if (task == null) {
+            return Optional.empty();
+        }
+
+        task.setTitle(title);
+        task.setDescription(description);
+        task.setPriority(priority);
+        task.setDueAt(dueAt);
+
+        return Optional.of(task);
+    }
+
+    public Optional<Task> updateStatus(UUID id, TaskStatus status) {
+        Task task = storage.get(id);
+        if (task == null) {
+            return Optional.empty();
+        }
+
+        task.setStatus(status);
+        return Optional.of(task);
+    }
+
+    public boolean delete(UUID id) {
+        return storage.remove(id) != null;
+    }
 }

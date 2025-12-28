@@ -8,7 +8,6 @@ import com.maksym.todoapi.service.TaskService;
 import com.maksym.todoapi.dto.TaskCreateRequest;
 import com.maksym.todoapi.dto.TaskResponse;
 import jakarta.validation.Valid;
-import org.springframework.boot.autoconfigure.http.client.AbstractHttpClientProperties;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,11 +19,9 @@ import java.util.UUID;
 public class TaskController {
 
     private final TaskService taskService;
-    private final AbstractHttpClientProperties abstractHttpClientProperties;
 
-    public TaskController(TaskService taskService, AbstractHttpClientProperties abstractHttpClientProperties) {
+    public TaskController(TaskService taskService) {
         this.taskService = taskService;
-        this.abstractHttpClientProperties = abstractHttpClientProperties;
     }
 
     private TaskResponse toResponse(Task task) {

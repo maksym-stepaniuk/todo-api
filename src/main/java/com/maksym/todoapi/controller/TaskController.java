@@ -24,16 +24,32 @@ public class TaskController {
         this.taskService = taskService;
     }
 
+    private TaskResponse toResponse(Task task) {
+        return new TaskResponse(
+                task.getId(),
+                task.getTitle(),
+                task.getDescription(),
+                task.getStatus(),
+                task.getPriority(),
+                task.getCreatedAt(),
+                task.getDueAt()
+        );
+    }
+
     @GetMapping
-    public ResponseEntity<List<Task>> getAll() {
-        return ResponseEntity.ok(taskService.getAll());
+    public ResponseEntity<List<TaskResponse>> getAll() {
+        List<TaskResponse> tasks = taskService.getAll().stream()
+                .map(this::toResponse)
+                .toList();
+
+        return ResponseEntity.ok(tasks);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Task> getById(@PathVariable UUID id) {
-        return taskService.getById(id)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<TaskResponse> getById(@PathVariable UUID id) {
+        Task task = taskService.getById(id);
+
+        return ResponseEntity.ok(toResponse(task));
     }
 
     @PostMapping
@@ -47,17 +63,7 @@ public class TaskController {
                 request.getDueAt()
         );
 
-        TaskResponse response = new TaskResponse(
-                task.getId(),
-                task.getTitle(),
-                task.getDescription(),
-                task.getStatus(),
-                task.getPriority(),
-                task.getCreatedAt(),
-                task.getDueAt()
-        );
-
-        return ResponseEntity.status(201).body(response);
+        return ResponseEntity.status(201).body(toResponse(task));
     }
 
     @PutMapping("/{id}")
@@ -65,23 +71,15 @@ public class TaskController {
             @PathVariable UUID id,
             @Valid @RequestBody TaskUpdateRequest request
     ) {
-        return taskService.update(
+        Task task = taskService.update(
                 id,
                 request.getTitle(),
                 request.getDescription(),
                 request.getPriority(),
                 request.getDueAt()
-        ).map(task -> ResponseEntity.ok(
-                new TaskResponse(
-                        task.getId(),
-                        task.getTitle(),
-                        task.getDescription(),
-                        task.getStatus(),
-                        task.getPriority(),
-                        task.getCreatedAt(),
-                        task.getDueAt()
-                )
-        )).orElseGet(() -> ResponseEntity.notFound().build());
+        );
+
+        return ResponseEntity.ok(toResponse(task));
     }
 
     @PatchMapping("/{id}/status")
@@ -89,28 +87,14 @@ public class TaskController {
             @PathVariable UUID id,
             @Valid @RequestBody TaskStatusUpdateRequest request
     ) {
-        return taskService.updateStatus(id, request.getStatus())
-                .map(task -> ResponseEntity.ok(
-                        new TaskResponse(
-                                task.getId(),
-                                task.getTitle(),
-                                task.getDescription(),
-                                task.getStatus(),
-                                task.getPriority(),
-                                task.getCreatedAt(),
-                                task.getDueAt()
-                        )
-                )).orElseGet(() -> ResponseEntity.notFound().build());
+        Task task = taskService.updateStatus(id, request.getStatus());
+
+        return ResponseEntity.ok(toResponse(task));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
-        boolean removed = taskService.delete(id);
-
-        if(removed) {
-            return ResponseEntity.noContent().build();
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        taskService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }

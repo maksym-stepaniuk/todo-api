@@ -1,5 +1,6 @@
 package com.maksym.todoapi.service;
 
+import com.maksym.todoapi.exception.TaskNotFoundException;
 import com.maksym.todoapi.model.Task;
 import com.maksym.todoapi.model.TaskStatus;
 import org.springframework.stereotype.Service;
@@ -40,8 +41,12 @@ public class TaskService {
         return new ArrayList<>(storage.values());
     }
 
-    public Optional<Task> getById(UUID id) {
-        return Optional.ofNullable(storage.get(id));
+    public Task getById(UUID id) {
+        Task task = storage.get(id);
+        if (task == null) {
+            throw new TaskNotFoundException("Task with id " + id + " not found");
+        }
+        return task;
     }
 
     public Task create(String title, String description, Integer priority, Instant dueAt) {
@@ -59,7 +64,7 @@ public class TaskService {
         return task;
     }
 
-    public Optional<Task> update(
+    public Task update(
             UUID id,
             String title,
             String description,
@@ -69,7 +74,7 @@ public class TaskService {
         Task task = storage.get(id);
 
         if (task == null) {
-            return Optional.empty();
+            throw new TaskNotFoundException("Task with id " + id + " not found");
         }
 
         task.setTitle(title);
@@ -77,20 +82,22 @@ public class TaskService {
         task.setPriority(priority);
         task.setDueAt(dueAt);
 
-        return Optional.of(task);
+        return task;
     }
 
-    public Optional<Task> updateStatus(UUID id, TaskStatus status) {
+    public Task updateStatus(UUID id, TaskStatus status) {
         Task task = storage.get(id);
         if (task == null) {
-            return Optional.empty();
+            throw new TaskNotFoundException("Task with id " + id + " not found");
         }
 
         task.setStatus(status);
-        return Optional.of(task);
+        return task;
     }
 
-    public boolean delete(UUID id) {
-        return storage.remove(id) != null;
+    public void delete(UUID id) {
+        if (storage.remove(id) == null) {
+            throw new TaskNotFoundException("Task with id " + id + " not found");
+        }
     }
 }

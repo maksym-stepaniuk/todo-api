@@ -8,6 +8,7 @@ import com.maksym.todoapi.service.TaskService;
 import com.maksym.todoapi.dto.TaskCreateRequest;
 import com.maksym.todoapi.dto.TaskResponse;
 import jakarta.validation.Valid;
+import org.springframework.boot.autoconfigure.http.client.AbstractHttpClientProperties;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,9 +20,11 @@ import java.util.UUID;
 public class TaskController {
 
     private final TaskService taskService;
+    private final AbstractHttpClientProperties abstractHttpClientProperties;
 
-    public TaskController(TaskService taskService) {
+    public TaskController(TaskService taskService, AbstractHttpClientProperties abstractHttpClientProperties) {
         this.taskService = taskService;
+        this.abstractHttpClientProperties = abstractHttpClientProperties;
     }
 
     private TaskResponse toResponse(Task task) {
@@ -37,8 +40,44 @@ public class TaskController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TaskResponse>> getAll() {
+    public ResponseEntity<List<TaskResponse>> getAll(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) String sort
+    ) {
         List<TaskResponse> tasks = taskService.getAll().stream()
+                .filter(task -> {
+                    if (status == null) { return true; }
+                    return task.getStatus().name().equalsIgnoreCase(status);
+                })
+
+                .filter(task -> {
+                    if (query == null) {
+                        return true;
+                    }
+
+                    String q = query.toLowerCase();
+
+                    return ((task.getTitle() != null && task.getTitle().toLowerCase().contains(q))
+                            || (task.getDescription() != null && task.getDescription().toLowerCase().contains(q)));
+                })
+
+                .sorted((a, b) -> {
+                        if (sort == null) { return 0; }
+
+                        return switch (sort) {
+                            case "priority" -> a.getPriority().compareTo(b.getPriority());
+                            case "dueAt" -> {
+                                if (a.getDueAt() == null && b.getDueAt() == null) yield 0;
+                                if (a.getDueAt() == null) yield 1;
+                                if (b.getDueAt() == null) yield -1;
+
+                                yield a.getDueAt().compareTo(b.getDueAt());
+                            }
+                            default -> 0;
+                        };
+                })
+
                 .map(this::toResponse)
                 .toList();
 

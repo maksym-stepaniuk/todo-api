@@ -3,7 +3,7 @@ package com.maksym.todoapi.controller;
 
 import com.maksym.todoapi.dto.TaskStatusUpdateRequest;
 import com.maksym.todoapi.dto.TaskUpdateRequest;
-import com.maksym.todoapi.model.Task;
+import com.maksym.todoapi.entity.TaskEntity;
 import com.maksym.todoapi.service.TaskService;
 import com.maksym.todoapi.dto.TaskCreateRequest;
 import com.maksym.todoapi.dto.TaskResponse;
@@ -24,7 +24,7 @@ public class TaskController {
         this.taskService = taskService;
     }
 
-    private TaskResponse toResponse(Task task) {
+    private TaskResponse toResponse(TaskEntity task) {
         return new TaskResponse(
                 task.getId(),
                 task.getTitle(),
@@ -83,7 +83,7 @@ public class TaskController {
 
     @GetMapping("/{id}")
     public ResponseEntity<TaskResponse> getById(@PathVariable UUID id) {
-        Task task = taskService.getById(id);
+        TaskEntity task = taskService.getById(id);
 
         return ResponseEntity.ok(toResponse(task));
     }
@@ -92,7 +92,7 @@ public class TaskController {
     public ResponseEntity<TaskResponse> create(
             @Valid @RequestBody TaskCreateRequest request
     ) {
-        Task task = taskService.create(
+        TaskEntity task = taskService.create(
                 request.getTitle(),
                 request.getDescription(),
                 request.getPriority(),
@@ -107,7 +107,7 @@ public class TaskController {
             @PathVariable UUID id,
             @Valid @RequestBody TaskUpdateRequest request
     ) {
-        Task task = taskService.update(
+        TaskEntity task = taskService.update(
                 id,
                 request.getTitle(),
                 request.getDescription(),
@@ -123,7 +123,7 @@ public class TaskController {
             @PathVariable UUID id,
             @Valid @RequestBody TaskStatusUpdateRequest request
     ) {
-        Task task = taskService.updateStatus(id, request.getStatus());
+        TaskEntity task = taskService.updateStatus(id, request.getStatus());
 
         return ResponseEntity.ok(toResponse(task));
     }

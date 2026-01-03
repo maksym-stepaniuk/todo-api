@@ -59,6 +59,17 @@ public class TaskEntity {
         this.project = project;
     }
 
+    public void updateDetails(String title, String description, Integer priority, Instant dueAt) {
+        this.title = title;
+        this.description = description;
+        this.priority = priority;
+        this.dueAt = dueAt;
+    }
+
+    public void updateStatus(TaskStatus status) {
+        this.status = status;
+    }
+
     public UUID getId() { return id; }
     public String getTitle() { return title; }
     public String getDescription() { return description; }

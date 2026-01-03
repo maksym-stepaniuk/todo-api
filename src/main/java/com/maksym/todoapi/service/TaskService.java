@@ -1,8 +1,12 @@
 package com.maksym.todoapi.service;
 
+import com.maksym.todoapi.entity.ProjectEntity;
+import com.maksym.todoapi.entity.TaskEntity;
 import com.maksym.todoapi.exception.TaskNotFoundException;
-import com.maksym.todoapi.model.Task;
 import com.maksym.todoapi.model.TaskStatus;
+import com.maksym.todoapi.repository.ProjectRepository;
+import com.maksym.todoapi.repository.TaskRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -10,94 +14,62 @@ import java.util.*;
 
 @Service
 public class TaskService {
-    private final Map<UUID, Task> storage = new HashMap<>();
+    private final TaskRepository taskRepository;
+    private final ProjectRepository projectRepository;
 
-    public TaskService() {
-        Task task1 = new Task(
-                UUID.randomUUID(),
-                "Learn spring boot",
-                "Make first endpoints",
-                TaskStatus.TODO,
-                1,
-                Instant.now(),
-                null
-        );
-
-        Task task2 = new Task(
-                UUID.randomUUID(),
-                "Write tests",
-                "MockMvc basics",
-                TaskStatus.IN_PROGRESS,
-                2,
-                Instant.now(),
-                null
-        );
-
-        storage.put(task1.getId(), task1);
-        storage.put(task2.getId(), task2);
+    public TaskService(TaskRepository taskRepository, ProjectRepository projectRepository) {
+        this.taskRepository = taskRepository;
+        this.projectRepository = projectRepository;
     }
 
-    public List<Task> getAll() {
-        return new ArrayList<>(storage.values());
+    private ProjectEntity getDefaultProject() {
+        return projectRepository.findAll().stream()
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Default project not found"));
     }
 
-    public Task getById(UUID id) {
-        Task task = storage.get(id);
-        if (task == null) {
-            throw new TaskNotFoundException("Task with id " + id + " not found");
-        }
-        return task;
+    public List<TaskEntity> getAll() {
+        return taskRepository.findAll();
     }
 
-    public Task create(String title, String description, Integer priority, Instant dueAt) {
-        Task task = new Task(
+    public TaskEntity getById(UUID id) {
+        return taskRepository.findById(id)
+                .orElseThrow(() -> new TaskNotFoundException("Task with id " + id + " not found"));
+    }
+
+    @Transactional
+    public TaskEntity create(String title, String description, Integer priority, Instant dueAt) {
+        TaskEntity task = new TaskEntity(
                 UUID.randomUUID(),
                 title,
                 description,
                 TaskStatus.TODO,
                 priority,
                 Instant.now(),
-                dueAt
+                dueAt,
+                getDefaultProject()
         );
 
-        storage.put(task.getId(), task);
+        return taskRepository.save(task);
+    }
+
+    @Transactional
+    public TaskEntity update(UUID id, String title, String description, Integer priority, Instant dueAt) {
+        TaskEntity task = getById(id);
+        task.updateDetails(title, description, priority, dueAt);
         return task;
     }
 
-    public Task update(
-            UUID id,
-            String title,
-            String description,
-            Integer priority,
-            Instant dueAt
-    ) {
-        Task task = storage.get(id);
-
-        if (task == null) {
-            throw new TaskNotFoundException("Task with id " + id + " not found");
-        }
-
-        task.setTitle(title);
-        task.setDescription(description);
-        task.setPriority(priority);
-        task.setDueAt(dueAt);
-
+    @Transactional
+    public TaskEntity updateStatus(UUID id, TaskStatus status) {
+        TaskEntity task = getById(id);
+        task.updateStatus(status);
         return task;
     }
 
-    public Task updateStatus(UUID id, TaskStatus status) {
-        Task task = storage.get(id);
-        if (task == null) {
-            throw new TaskNotFoundException("Task with id " + id + " not found");
-        }
-
-        task.setStatus(status);
-        return task;
-    }
-
+    @Transactional
     public void delete(UUID id) {
-        if (storage.remove(id) == null) {
-            throw new TaskNotFoundException("Task with id " + id + " not found");
-        }
+        TaskEntity task = getById(id);
+        taskRepository.delete(task);
     }
 }

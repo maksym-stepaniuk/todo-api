@@ -7,6 +7,8 @@ import com.maksym.todoapi.model.TaskStatus;
 import com.maksym.todoapi.repository.ProjectRepository;
 import com.maksym.todoapi.repository.TaskRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -71,5 +73,13 @@ public class TaskService {
     public void delete(UUID id) {
         TaskEntity task = getById(id);
         taskRepository.delete(task);
+    }
+
+    public Page<TaskEntity> getTasksByProject(UUID projectId, TaskStatus status, Pageable pageable) {
+        if (status == null) {
+            return taskRepository.findAllByProjectId(projectId, pageable);
+        }
+
+        return taskRepository.findAllByProjectIdAndStatus(projectId, status, pageable);
     }
 }

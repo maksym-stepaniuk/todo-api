@@ -77,9 +77,9 @@ public class TaskService {
 
     public Page<TaskEntity> getTasksByProject(UUID projectId, TaskStatus status, Pageable pageable) {
         if (status == null) {
-            return taskRepository.findAllByProjectId(projectId, pageable);
+            return taskRepository.findAllByProject_Id(projectId, pageable);
         }
 
-        return taskRepository.findAllByProjectIdAndStatus(projectId, status, pageable);
+        return taskRepository.findAllByProject_IdAndStatus(projectId, status, pageable);
     }
 }

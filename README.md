@@ -1,208 +1,90 @@
 # Todo API
 
-A simple RESTful Todo application built with **Spring Boot**.  
-The project is intentionally built step-by-step to learn and practice:
-
-- Modern Java
-- Spring Boot fundamentals
-- REST API design
-- DTOs & Validation
-- Global exception handling
-- Filtering / searching / sorting via query params
-- Testing Spring controllers with MockMvc
+RESTful Todo application on **Spring Boot** with PostgreSQL, Flyway, and integration tests.
 
 ---
 
 ## Tech Stack
-
 - Java 21
-- Spring Boot 3
-- Maven
-- Spring Web
-- Spring Validation
-- JUnit 5 / MockMvc
+- Spring Boot 3 (Web, Validation, Data JPA)
+- Maven (wrapper `./mvnw`)
+- PostgreSQL + Flyway
+- JUnit 5 / MockMvc / Testcontainers
 
 ---
 
 ## Project Structure
-
-The application follows a layered architecture:
-
-- `controller` → REST controllers (API layer)
-- `service` → business logic
-- `dto` → request/response objects
-- `model` → domain models
-- `exception` → custom exceptions + global error handling
+- `controller` — REST controllers
+- `service` — business logic
+- `dto` — request/response objects
+- `model` — domain models
+- `exception` — custom errors and global handler
+- `entity` — JPA entities
+- `config/DataInitializer` — seeds a default user and project
 
 ---
 
 ## Getting Started
-
 ### Requirements
+- Java 21+
+- Docker (for tests and local DB)
+- Maven wrapper (`./mvnw`) is included
 
-- Java **21+**
-- Maven
-
-### Run the application
-
+### Run the application (with Postgres)
 ```bash
-mvn spring-boot:run
+docker compose up -d postgres   # starts postgres:16 with creds from application.yml
+./mvnw spring-boot:run
 ```
-
-The server starts at:
-
-- http://localhost:8080
+Service listens on `http://localhost:8080`. A default user `test@test.com` and project `Default project` are created by `DataInitializer`.
 
 ---
 
 ## Health Check
-
-**Request:**
-```http
-GET /health
 ```
-
-**Response:**
-```text
-ok
+GET /health -> ok
 ```
 
 ---
 
-## Tasks API
-
+## Tasks API (main)
 ### Create Task
-
-**Request:**
-```http
-POST /tasks
 ```
-
-**Body:**
-```json
+POST /tasks
 {
   "title": "Learn Spring",
-  "description": "Practice Day 7",
+  "description": "Practice",
   "priority": 1,
   "dueAt": "2025-12-31T10:00:00Z"
 }
 ```
+201 on success, 400 on validation errors.
 
-**Responses:**
-
-| Code | Meaning           |
-|------|-------------------|
-| 201  | created           |
-| 400  | validation failed |
-
----
-
-### Get All Tasks (with filters)
-
-**Request:**
-```http
-GET /tasks
+### Get Tasks (in-memory filters)
 ```
-
-Supports:
-
-| Param  | Description                 | Example          |
-|--------|-----------------------------|------------------|
-| status | filter by status            | TODO             |
-| query  | search in title/description | spring           |
-| sort   | sort by field               | priority, dueAt  |
-
-Examples:
-
-```bash
-GET /tasks?status=TODO
-GET /tasks?query=learn
-GET /tasks?sort=priority
-GET /tasks?status=DONE&query=test&sort=dueAt
+GET /tasks?status=TODO&query=learn&sort=priority
 ```
+Supports `status`, `query` (title/description), `sort` (`priority`|`dueAt`).
 
----
-
-### Get Task By ID
-
-**Request:**
-```http
-GET /tasks/{id}
+### Get / Update / Patch status / Delete
 ```
-
-**Responses:**
-
-| Code | Meaning   |
-|------|-----------|
-| 200  | ok        |
-| 404  | not found |
-
----
-
-### Update Task
-
-**Request:**
-```http
-PUT /tasks/{id}
-```
-
-**Body:**
-```json
-{
-  "title": "Updated title",
-  "description": "Updated description",
-  "priority": 2,
-  "dueAt": "2025-12-31T10:00:00Z"
-}
-```
-
----
-
-### Change Task Status
-
-**Request:**
-```http
-PATCH /tasks/{id}/status
-```
-
-**Body:**
-```json
-{
-  "status": "DONE"
-}
-```
-
----
-
-### Delete Task
-
-**Request:**
-```http
+GET    /tasks/{id}
+PUT    /tasks/{id}
+PATCH  /tasks/{id}/status
 DELETE /tasks/{id}
 ```
 
-**Responses:**
+---
 
-| Code | Meaning   |
-|------|-----------|
-| 204  | deleted   |
-| 404  | not found |
+## Project Tasks (paged)
+```
+GET /projects/{projectId}/tasks?status=TODO&page=0&size=20
+```
+Returns `PageResponse<TaskResponse>` with `content`, `page`, `size`, `totalElements`, `totalPages`, `last`.
 
 ---
 
-## Validation
-
-Example invalid request:
-
-```json
-{
-  "title": "",
-  "priority": null
-}
-```
-
-Response `400`:
-
+## Validation & Errors
+Example 400 response:
 ```json
 {
   "code": "VALIDATION_ERROR",
@@ -213,56 +95,20 @@ Response `400`:
   }
 }
 ```
-
----
-
-## Unified Error Format
-
-All errors follow one structure:
-
-```json
-{
-  "code": "TASK_NOT_FOUND",
-  "message": "Task with id ... not found",
-  "timestamp": "..."
-}
-```
-
-Other codes include:
-
-- `VALIDATION_ERROR`
-- `INTERNAL_ERROR`
+Error format is unified (`code`, `message`, `timestamp`). Possible codes: `VALIDATION_ERROR`, `TASK_NOT_FOUND`, `INTERNAL_ERROR`.
 
 ---
 
 ## Tests
-
-API is covered with MockMvc tests including:
-
-- ✔ create task
-- ✔ invalid create → 400
-- ✔ get not found → 404
-- ✔ update
-- ✔ delete → 204
-
-Run tests:
-
+Integration tests use Testcontainers (Docker required):
 ```bash
-mvn test
+./mvnw test
 ```
+Coverage:
+- MockMvc tests for the task controller
+- Repository/service integration against real Postgres in a container
 
 ---
 
 ## Status
-
-This project is intentionally built gradually to:
-
-- understand Spring Boot internals
-- practice clean API design
-
-Future improvements may include:
-
-- persistence (PostgreSQL + JPA)
-- authentication
-- pagination
-- Docker
+Runs with PostgreSQL via JPA/Flyway, supports CRUD for tasks and paginated project tasks. Testcontainers ensure reproducible integration tests.

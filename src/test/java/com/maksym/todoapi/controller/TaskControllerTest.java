@@ -1,6 +1,7 @@
 package com.maksym.todoapi.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.maksym.todoapi.BaseIntegrationTest;
 import com.maksym.todoapi.dto.TaskCreateRequest;
 import com.maksym.todoapi.model.TaskStatus;
 import org.junit.jupiter.api.Test;
@@ -9,6 +10,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
+
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -16,7 +19,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class TaskControllerTest {
+@Transactional
+public class TaskControllerTest extends BaseIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;

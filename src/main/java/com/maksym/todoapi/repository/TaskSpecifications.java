@@ -35,4 +35,17 @@ public final class TaskSpecifications {
         if (dueTo == null) return null;
         return (root, query, cb) -> cb.lessThanOrEqualTo(root.get("dueAt"), dueTo);
     }
+
+    public static Specification<TaskEntity> matchesQuery(String q) {
+        if (q == null) { return null; }
+
+        String normalized = q.toLowerCase().trim();
+        if (normalized.isEmpty()) { return null; }
+
+        String pattern = "%" + normalized + "%";
+        return (root, query, criteriaBuilder) -> criteriaBuilder.or(
+                        criteriaBuilder.like(criteriaBuilder.lower(root.get("title")), pattern),
+                        criteriaBuilder.like(criteriaBuilder.lower(root.get("description")), pattern)
+        );
+    }
 }

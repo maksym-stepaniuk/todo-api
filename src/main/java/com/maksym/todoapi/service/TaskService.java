@@ -84,13 +84,15 @@ public class TaskService {
             List<Integer> priorities,
             Instant dueFrom,
             Instant dueTo,
+            String q,
             Pageable pageable
     ) {
         Specification<TaskEntity> spec = Specification.where(belongsToProject(projectId))
                 .and(hasStatuses(statuses))
                 .and(hasPriorities(priorities))
                 .and(dueFrom(dueFrom))
-                .and(dueTo(dueTo));
+                .and(dueTo(dueTo))
+                .and(matchesQuery(q));
 
         return taskRepository.findAll(spec, pageable);
     }

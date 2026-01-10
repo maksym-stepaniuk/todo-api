@@ -33,9 +33,10 @@ public class ProjectTaskController {
             @RequestParam(required = false) List<Integer> priority,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant dueFrom,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant dueTo,
+            @RequestParam(required = false) String q,
             @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
             ) {
-        Page<TaskEntity> page = taskService.getTasksByProject(projectId, status, priority, dueFrom, dueTo, pageable);
+        Page<TaskEntity> page = taskService.getTasksByProject(projectId, status, priority, dueFrom, dueTo, q, pageable);
 
         return new PageResponse<>(
                 page.getContent().stream()

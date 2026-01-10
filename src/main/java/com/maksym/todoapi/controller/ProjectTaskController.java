@@ -7,8 +7,13 @@ import com.maksym.todoapi.model.TaskStatus;
 import com.maksym.todoapi.service.TaskService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -24,10 +29,13 @@ public class ProjectTaskController {
     @GetMapping
     public PageResponse<TaskResponse> getTasks(
             @PathVariable UUID projectId,
-            @RequestParam(required = false) TaskStatus status,
-            Pageable pageable
-    ) {
-        Page<TaskEntity> page = taskService.getTasksByProject(projectId, status, pageable);
+            @RequestParam(required = false) List<TaskStatus> status,
+            @RequestParam(required = false) List<Integer> priority,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant dueFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant dueTo,
+            @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+            ) {
+        Page<TaskEntity> page = taskService.getTasksByProject(projectId, status, priority, dueFrom, dueTo, pageable);
 
         return new PageResponse<>(
                 page.getContent().stream()

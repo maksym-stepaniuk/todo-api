@@ -9,10 +9,13 @@ import com.maksym.todoapi.repository.TaskRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.*;
+
+import static com.maksym.todoapi.repository.TaskSpecifications.*;
 
 @Service
 public class TaskService {
@@ -75,11 +78,20 @@ public class TaskService {
         taskRepository.delete(task);
     }
 
-    public Page<TaskEntity> getTasksByProject(UUID projectId, TaskStatus status, Pageable pageable) {
-        if (status == null) {
-            return taskRepository.findAllByProject_Id(projectId, pageable);
-        }
+    public Page<TaskEntity> getTasksByProject(
+            UUID projectId,
+            List<TaskStatus> statuses,
+            List<Integer> priorities,
+            Instant dueFrom,
+            Instant dueTo,
+            Pageable pageable
+    ) {
+        Specification<TaskEntity> spec = Specification.where(belongsToProject(projectId))
+                .and(hasStatuses(statuses))
+                .and(hasPriorities(priorities))
+                .and(dueFrom(dueFrom))
+                .and(dueTo(dueTo));
 
-        return taskRepository.findAllByProject_IdAndStatus(projectId, status, pageable);
+        return taskRepository.findAll(spec, pageable);
     }
 }

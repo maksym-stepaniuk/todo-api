@@ -12,6 +12,10 @@ import java.util.UUID;
 public final class TaskSpecifications {
     private TaskSpecifications() {}
 
+    public static Specification<TaskEntity> belongsToUser(UUID userId) {
+        return (root, query, cb) -> cb.equal(root.get("project").get("user").get("id"), userId);
+    }
+
     public static Specification<TaskEntity> belongsToProject(UUID projectId) {
         return (root, query, cb) -> cb.equal(root.get("project").get("id"), projectId);
     }

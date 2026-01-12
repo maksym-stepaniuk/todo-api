@@ -2,10 +2,13 @@ package com.maksym.todoapi.service;
 
 import com.maksym.todoapi.entity.ProjectEntity;
 import com.maksym.todoapi.entity.TaskEntity;
+import com.maksym.todoapi.exception.ProjectNotFoundException;
 import com.maksym.todoapi.exception.TaskNotFoundException;
+import com.maksym.todoapi.exception.UnauthorizedException;
 import com.maksym.todoapi.model.TaskStatus;
 import com.maksym.todoapi.repository.ProjectRepository;
 import com.maksym.todoapi.repository.TaskRepository;
+import com.maksym.todoapi.security.UserContext;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,23 +30,32 @@ public class TaskService {
         this.projectRepository = projectRepository;
     }
 
-    private ProjectEntity getDefaultProject() {
-        return projectRepository.findAll().stream()
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Default project not found"));
+    private UUID currentUserId() {
+        UUID userId = UserContext.get();
+        if(userId == null) {
+            throw new UnauthorizedException("X-User-Id header is required");
+        }
+        return userId;
+    }
+
+    private ProjectEntity getDefaultProject(UUID userId) {
+        return projectRepository.findFirstByUser_Id(userId)
+                .orElseThrow(() -> new ProjectNotFoundException("Default project not found"));
     }
 
     public List<TaskEntity> getAll() {
-        return taskRepository.findAll();
+        return taskRepository.findAllByProject_User_Id(currentUserId());
     }
 
     public TaskEntity getById(UUID id) {
-        return taskRepository.findById(id)
+        return taskRepository.findByIdAndProject_User_Id(id, currentUserId())
                 .orElseThrow(() -> new TaskNotFoundException("Task with id " + id + " not found"));
     }
 
     @Transactional
     public TaskEntity create(String title, String description, Integer priority, Instant dueAt) {
+        UUID userId = currentUserId();
+
         TaskEntity task = new TaskEntity(
                 UUID.randomUUID(),
                 title,
@@ -52,7 +64,7 @@ public class TaskService {
                 priority,
                 Instant.now(),
                 dueAt,
-                getDefaultProject()
+                getDefaultProject(userId)
         );
 
         return taskRepository.save(task);
@@ -87,7 +99,14 @@ public class TaskService {
             String q,
             Pageable pageable
     ) {
+        UUID userId = currentUserId();
+
+        projectRepository.findByIdAndUser_Id(projectId, userId)
+                .orElseThrow(() -> new ProjectNotFoundException("Project not found"));
+
+
         Specification<TaskEntity> spec = Specification.where(belongsToProject(projectId))
+                .and(belongsToUser(userId))
                 .and(hasStatuses(statuses))
                 .and(hasPriorities(priorities))
                 .and(dueFrom(dueFrom))

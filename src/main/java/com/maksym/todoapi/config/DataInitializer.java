@@ -20,17 +20,15 @@ public class DataInitializer {
         this.projectRepository = projectRepository;
     }
 
+    private static final UUID DEFAULT_USER_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
+    private static final UUID DEFAULT_PROJECT_ID = UUID.fromString("22222222-2222-2222-2222-222222222222");
+
     @PostConstruct
     public void init() {
+        UserEntity user = userRepository.findByEmail("test@test.com")
+                        .orElseGet(() -> userRepository.save(new UserEntity(DEFAULT_USER_ID, "test@test.com")));
 
-        if (userRepository.count() > 0) {
-            return;
-        }
-
-        UserEntity user = new UserEntity(UUID.randomUUID(), "test@test.com");
-        userRepository.save(user);
-
-        ProjectEntity project = new ProjectEntity(UUID.randomUUID(), "Default project", user);
-        projectRepository.save(project);
+        projectRepository.findFirstByUser_Id(user.getId())
+                .orElseGet(() -> projectRepository.save(new ProjectEntity(DEFAULT_PROJECT_ID, "Default Project", user)));
     }
 }

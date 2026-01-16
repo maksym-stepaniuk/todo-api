@@ -1,28 +1,34 @@
 package com.maksym.todoapi.exception;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 
 public class ErrorResponse {
-    private String code;
+    private Instant timestamp;
+    private int status;
+    private String error;
     private String message;
-    private Map<String, String> details;
-    private Instant timestamp = Instant.now();
+    private String path;
+    private List<String> details;
 
-    public ErrorResponse(String code, String message) {
-        this.code = code;
+    public ErrorResponse(int status, String error, String message, String path, List<String> details) {
+        this.timestamp = Instant.now();
+        this.status = status;
+        this.error = error;
         this.message = message;
-    }
-
-    public ErrorResponse(String code, String message, Map<String, String> details) {
-        this.code = code;
-        this.message = message;
+        this.path = path;
         this.details = details;
     }
 
-    public String getCode() { return code; };
-    public String getMessage() { return message; }
-    public Map<String, String> getDetails() { return details; }
-    public Instant getTimestamp() { return timestamp; }
+    public ErrorResponse(int status, String error, String message, String path) {
+        this(status, error, message, path, null);
+    }
 
+    public Instant getTimestamp() { return timestamp; }
+    public int getStatus() { return status; }
+    public String getError() { return error; }
+    public String getMessage() { return message; }
+    public String getPath() { return path; }
+    public List<String> getDetails() { return details; }
 }

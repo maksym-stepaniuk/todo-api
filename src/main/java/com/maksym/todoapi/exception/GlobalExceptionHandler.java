@@ -1,76 +1,86 @@
 package com.maksym.todoapi.exception;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
+
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(TaskNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleTaskNotFound(TaskNotFoundException ex) {
-
-        ErrorResponse error = new ErrorResponse(
-                "TASK_NOT_FOUND",
-                ex.getMessage()
+    private ErrorResponse build(HttpStatus status, String message, HttpServletRequest request, List<String> details) {
+        return new ErrorResponse(
+                status.value(),
+                status.getReasonPhrase(),
+                message,
+                request.getRequestURI(),
+                details
         );
+    }
 
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    @ExceptionHandler(TaskNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleTaskNotFound(HttpServletRequest request, TaskNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(build(HttpStatus.NOT_FOUND, ex.getMessage(), request, null));
     }
 
     @ExceptionHandler(ProjectNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleProjectNotFound(ProjectNotFoundException ex) {
-
-        ErrorResponse error = new ErrorResponse(
-                "PROJECT_NOT_FOUND",
-                ex.getMessage()
-        );
-
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    public ResponseEntity<ErrorResponse> handleProjectNotFound(HttpServletRequest request, ProjectNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(build(HttpStatus.NOT_FOUND, ex.getMessage(), request, null));
     }
 
     @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<ErrorResponse> handleUnauthorized(UnauthorizedException ex) {
-
-        ErrorResponse error = new ErrorResponse(
-                "UNAUTHORIZED",
-                ex.getMessage()
-        );
-
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    public ResponseEntity<ErrorResponse> handleUnauthorized(HttpServletRequest request, UnauthorizedException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(build(HttpStatus.UNAUTHORIZED, ex.getMessage(), request, null));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ErrorResponse> handleValidation(HttpServletRequest request, MethodArgumentNotValidException ex) {
+        List<String> details = ex.getBindingResult().getFieldErrors().stream()
+                .map(err -> err.getField() + ": " + err.getDefaultMessage())
+                .toList();
 
-        Map<String, String> details = new HashMap<>();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(build(HttpStatus.BAD_REQUEST, "Validation failed", request, details));
+    }
 
-        ex.getBindingResult().getFieldErrors().forEach(err ->
-                details.put(err.getField(), err.getDefaultMessage())
-        );
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleConstraintValidation(HttpServletRequest request, ConstraintViolationException ex) {
+        List<String> details = ex.getConstraintViolations().stream()
+                .map(v -> v.getPropertyPath() + ": " + v.getMessage())
+                .toList();
 
-        ErrorResponse error = new ErrorResponse(
-                "VALIDATION_ERROR",
-                "request validation failed",
-                details
-        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(build(HttpStatus.BAD_REQUEST, "Invalid request parameters", request, details));
+    }
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleTypeMismatch(HttpServletRequest request, MethodArgumentTypeMismatchException ex) {
+        String expected = (ex.getRequiredType() == null) ? "unknown" : ex.getRequiredType().getSimpleName();
+        List<String> details = List.of("Parameter '%s' must be of type '%s'".formatted(ex.getName(), expected));
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(build(HttpStatus.BAD_REQUEST, "Invalid parameter", request, details));
+    }
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ErrorResponse> handleBadRequest(HttpServletRequest request, BadRequestException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(build(HttpStatus.BAD_REQUEST, ex.getMessage(), request, null));
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleOther(Exception ex) {
-
-        ErrorResponse error = new ErrorResponse(
-                "INTERNAL_ERROR",
-                "something went wrong"
-        );
-
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    public ResponseEntity<ErrorResponse> handleOther(HttpServletRequest request, Exception ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(build(HttpStatus.INTERNAL_SERVER_ERROR, "Something went wrong", request, null));
     }
 }

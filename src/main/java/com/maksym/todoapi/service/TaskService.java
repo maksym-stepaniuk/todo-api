@@ -9,7 +9,7 @@ import com.maksym.todoapi.model.TaskStatus;
 import com.maksym.todoapi.repository.ProjectRepository;
 import com.maksym.todoapi.repository.TaskRepository;
 import com.maksym.todoapi.security.UserContext;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -38,15 +38,18 @@ public class TaskService {
         return userId;
     }
 
+    @Transactional(readOnly = true)
     private ProjectEntity getDefaultProject(UUID userId) {
         return projectRepository.findFirstByUser_Id(userId)
                 .orElseThrow(() -> new ProjectNotFoundException("Default project not found"));
     }
 
+    @Transactional(readOnly = true)
     public List<TaskEntity> getAll() {
         return taskRepository.findAllByProject_User_Id(currentUserId());
     }
 
+    @Transactional(readOnly = true)
     public TaskEntity getById(UUID id) {
         return taskRepository.findByIdAndProject_User_Id(id, currentUserId())
                 .orElseThrow(() -> new TaskNotFoundException("Task with id " + id + " not found"));
@@ -90,6 +93,7 @@ public class TaskService {
         taskRepository.delete(task);
     }
 
+    @Transactional(readOnly = true)
     public Page<TaskEntity> getTasksByProject(
             UUID projectId,
             List<TaskStatus> statuses,

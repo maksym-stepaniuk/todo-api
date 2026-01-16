@@ -14,6 +14,10 @@ public class TaskEntity {
     @Column(nullable = false)
     private UUID id;
 
+    @Version
+    @Column(nullable = false)
+    private Long version;
+
     @Column(nullable = false, length = 100)
     private String title;
 
@@ -78,4 +82,5 @@ public class TaskEntity {
     public Instant getCreatedAt() { return createdAt; }
     public Instant getDueAt() { return dueAt; }
     public ProjectEntity getProject() { return project; }
+    public Long getVersion() { return version; }
 }

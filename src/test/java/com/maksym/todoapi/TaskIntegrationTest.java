@@ -33,18 +33,20 @@ public class TaskIntegrationTest extends BaseIntegrationTest{
     @Test
     void fullFlow_userProjectTaskWorks() {
 
-        UserEntity user = new UserEntity(
-                UUID.randomUUID(),
-                "integration@test.com"
+        UserEntity savedUser = userRepository.save(
+                new UserEntity(
+                    UUID.randomUUID(),
+                    "integration@test.com"
+                )
         );
-        userRepository.save(user);
 
-        ProjectEntity project = new ProjectEntity(
-                UUID.randomUUID(),
-                "Integration Project",
-                user
+        ProjectEntity savedProject = projectRepository.save(
+                new ProjectEntity(
+                    UUID.randomUUID(),
+                    "Integration Project",
+                    savedUser
+                )
         );
-        projectRepository.save(project);
 
         TaskEntity task = new TaskEntity(
                 UUID.randomUUID(),
@@ -54,7 +56,7 @@ public class TaskIntegrationTest extends BaseIntegrationTest{
                 1,
                 Instant.now(),
                 null,
-                project
+                savedProject
         );
         taskRepository.save(task);
 

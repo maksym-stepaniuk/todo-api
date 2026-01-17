@@ -37,6 +37,7 @@ public class TaskControllerTest extends BaseIntegrationTest {
         request.setPriority(1);
 
         mockMvc.perform(post("/tasks")
+                        .header("X-User-Id", "11111111-1111-1111-1111-111111111111")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -53,19 +54,23 @@ public class TaskControllerTest extends BaseIntegrationTest {
         request.setPriority(null);
 
         mockMvc.perform(post("/tasks")
+                        .header("X-User-Id", "11111111-1111-1111-1111-111111111111")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.error").value("Bad Request"));
 
     }
 
     @Test
     void getTask_notExisting_shouldReturn404() throws Exception {
 
-        mockMvc.perform(get("/tasks/00000000-0000-0000-0000-000000000000"))
+        mockMvc.perform(get("/tasks/00000000-0000-0000-0000-000000000000")
+                        .header("X-User-Id", "11111111-1111-1111-1111-111111111111"))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.code").value("TASK_NOT_FOUND"));
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.error").value("Not Found"));
     }
 
     @Test
@@ -77,6 +82,7 @@ public class TaskControllerTest extends BaseIntegrationTest {
         request.setPriority(2);
 
         String response = mockMvc.perform(post("/tasks")
+                    .header("X-User-Id", "11111111-1111-1111-1111-111111111111")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -95,6 +101,7 @@ public class TaskControllerTest extends BaseIntegrationTest {
                 """;
 
         mockMvc.perform(put("/tasks/" + id)
+                    .header("X-User-Id", "11111111-1111-1111-1111-111111111111")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(updatedJson))
                 .andExpect(status().isOk())
@@ -111,6 +118,7 @@ public class TaskControllerTest extends BaseIntegrationTest {
         request.setPriority(2);
 
         String response = mockMvc.perform(post("/tasks")
+                        .header("X-User-Id", "11111111-1111-1111-1111-111111111111")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -120,7 +128,8 @@ public class TaskControllerTest extends BaseIntegrationTest {
 
         String id = objectMapper.readTree(response).get("id").asText();
 
-        mockMvc.perform(delete("/tasks/" + id))
+        mockMvc.perform(delete("/tasks/" + id)
+                        .header("X-User-Id", "11111111-1111-1111-1111-111111111111"))
                 .andExpect(status().isNoContent());
     }
 }

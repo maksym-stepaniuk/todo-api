@@ -13,6 +13,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -37,6 +38,7 @@ public class TaskControllerTest extends BaseIntegrationTest {
         request.setPriority(1);
 
         mockMvc.perform(post("/tasks")
+                        .with(jwt())
                         .header("X-User-Id", "11111111-1111-1111-1111-111111111111")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -54,6 +56,7 @@ public class TaskControllerTest extends BaseIntegrationTest {
         request.setPriority(null);
 
         mockMvc.perform(post("/tasks")
+                        .with(jwt())
                         .header("X-User-Id", "11111111-1111-1111-1111-111111111111")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -67,6 +70,7 @@ public class TaskControllerTest extends BaseIntegrationTest {
     void getTask_notExisting_shouldReturn404() throws Exception {
 
         mockMvc.perform(get("/tasks/00000000-0000-0000-0000-000000000000")
+                        .with(jwt())
                         .header("X-User-Id", "11111111-1111-1111-1111-111111111111"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
@@ -82,6 +86,7 @@ public class TaskControllerTest extends BaseIntegrationTest {
         request.setPriority(2);
 
         String response = mockMvc.perform(post("/tasks")
+                    .with(jwt())
                     .header("X-User-Id", "11111111-1111-1111-1111-111111111111")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request)))
@@ -101,6 +106,7 @@ public class TaskControllerTest extends BaseIntegrationTest {
                 """;
 
         mockMvc.perform(put("/tasks/" + id)
+                    .with(jwt())
                     .header("X-User-Id", "11111111-1111-1111-1111-111111111111")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(updatedJson))
@@ -118,6 +124,7 @@ public class TaskControllerTest extends BaseIntegrationTest {
         request.setPriority(2);
 
         String response = mockMvc.perform(post("/tasks")
+                        .with(jwt())
                         .header("X-User-Id", "11111111-1111-1111-1111-111111111111")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -129,6 +136,7 @@ public class TaskControllerTest extends BaseIntegrationTest {
         String id = objectMapper.readTree(response).get("id").asText();
 
         mockMvc.perform(delete("/tasks/" + id)
+                        .with(jwt())
                         .header("X-User-Id", "11111111-1111-1111-1111-111111111111"))
                 .andExpect(status().isNoContent());
     }

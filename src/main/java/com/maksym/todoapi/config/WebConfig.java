@@ -18,6 +18,6 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(userIdInterceptor)
                 .addPathPatterns("/**")
-                .excludePathPatterns("/health");
+                .excludePathPatterns("/health", "/auth/**");
     }
 }

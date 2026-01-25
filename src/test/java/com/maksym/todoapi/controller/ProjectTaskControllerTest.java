@@ -5,9 +5,11 @@ import com.maksym.todoapi.entity.ProjectEntity;
 import com.maksym.todoapi.entity.TaskEntity;
 import com.maksym.todoapi.entity.UserEntity;
 import com.maksym.todoapi.model.TaskStatus;
+import com.maksym.todoapi.model.UserRole;
 import com.maksym.todoapi.repository.ProjectRepository;
 import com.maksym.todoapi.repository.TaskRepository;
 import com.maksym.todoapi.repository.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,8 +20,10 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Set;
 import java.util.UUID;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -28,6 +32,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 @AutoConfigureMockMvc
 public class ProjectTaskControllerTest extends BaseIntegrationTest {
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private UserRepository userRepository;
@@ -46,7 +53,7 @@ public class ProjectTaskControllerTest extends BaseIntegrationTest {
 
     @BeforeEach
     public void setUp() {
-        owner = userRepository.save(new UserEntity(UUID.randomUUID(), "owner@test.com"));
+        owner = userRepository.save(new UserEntity(UUID.randomUUID(), "owner@test.com",passwordEncoder.encode("change-me"), Instant.now(), Set.of(UserRole.USER)));
         project = projectRepository.save(new ProjectEntity(UUID.randomUUID(), "Project Owner", owner));
 
         Instant base = Instant.parse("2026-01-10T00:00:00Z");
@@ -66,6 +73,7 @@ public class ProjectTaskControllerTest extends BaseIntegrationTest {
     @Test
     void listTasks_withFiltersSearchSortAndPagination() throws Exception {
         mockMvc.perform(get("/projects/" + project.getId() + "/tasks")
+                .with(jwt())
                 .header("X-User-Id", owner.getId().toString())
                 .param("status", "IN_PROGRESS")
                 .param("priority", "1")
@@ -87,6 +95,7 @@ public class ProjectTaskControllerTest extends BaseIntegrationTest {
     void listTasks_otherUserShouldNotSeeProject() throws Exception {
         UUID otherUser = UUID.randomUUID();
         mockMvc.perform(get("/projects/" + project.getId() + "/tasks")
+                .with(jwt())
                 .header("X-User-Id", otherUser.toString())
         )
                 .andExpect(status().isNotFound())
@@ -96,7 +105,8 @@ public class ProjectTaskControllerTest extends BaseIntegrationTest {
 
     @Test
     void listTasks_withoutHeader_shouldReturn401() throws Exception {
-        mockMvc.perform(get("/projects/" + project.getId() + "/tasks"))
+        mockMvc.perform(get("/projects/" + project.getId() + "/tasks")
+                    .with(jwt()))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.status").value(401))
                 .andExpect(jsonPath("$.error").value("Unauthorized"));

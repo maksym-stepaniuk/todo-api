@@ -4,15 +4,18 @@ import com.maksym.todoapi.entity.ProjectEntity;
 import com.maksym.todoapi.entity.TaskEntity;
 import com.maksym.todoapi.entity.UserEntity;
 import com.maksym.todoapi.model.TaskStatus;
+import com.maksym.todoapi.model.UserRole;
 import com.maksym.todoapi.repository.ProjectRepository;
 import com.maksym.todoapi.repository.TaskRepository;
 import com.maksym.todoapi.repository.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.Instant;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -20,6 +23,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 @Transactional
 public class TaskIntegrationTest extends BaseIntegrationTest{
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private UserRepository userRepository;
@@ -36,7 +42,10 @@ public class TaskIntegrationTest extends BaseIntegrationTest{
         UserEntity savedUser = userRepository.save(
                 new UserEntity(
                     UUID.randomUUID(),
-                    "integration@test.com"
+                    "integration@test.com",
+                    passwordEncoder.encode("change-me"),
+                    Instant.now(),
+                    Set.of(UserRole.USER)
                 )
         );
 

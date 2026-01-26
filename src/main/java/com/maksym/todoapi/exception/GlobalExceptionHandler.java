@@ -2,6 +2,7 @@ package com.maksym.todoapi.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
+import org.flywaydb.core.internal.jdbc.ErrorImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -76,6 +77,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleBadRequest(HttpServletRequest request, BadRequestException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(build(HttpStatus.BAD_REQUEST, ex.getMessage(), request, null));
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ErrorResponse> handleConflict(HttpServletRequest request, ConflictException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(build(HttpStatus.CONFLICT, ex.getMessage(), request, null));
     }
 
     @ExceptionHandler(Exception.class)

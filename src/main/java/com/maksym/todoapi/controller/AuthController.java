@@ -1,5 +1,7 @@
 package com.maksym.todoapi.controller;
 
+import com.maksym.todoapi.dto.LoginRequest;
+import com.maksym.todoapi.dto.LoginResponse;
 import com.maksym.todoapi.dto.RegisterRequest;
 import com.maksym.todoapi.dto.RegisterResponse;
 import com.maksym.todoapi.entity.UserEntity;
@@ -22,5 +24,10 @@ public class AuthController {
     public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request) {
         UserEntity user =  authService.register(request.getEmail(), request.getPassword());
         return ResponseEntity.status(201).body(new RegisterResponse(user.getId(), user.getEmail()));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        return ResponseEntity.ok(authService.login(request.getEmail(), request.getPassword()));
     }
 }

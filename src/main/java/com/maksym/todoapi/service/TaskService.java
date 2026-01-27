@@ -39,12 +39,6 @@ public class TaskService {
     }
 
     @Transactional(readOnly = true)
-    private ProjectEntity getDefaultProject(UUID userId) {
-        return projectRepository.findFirstByUser_Id(userId)
-                .orElseThrow(() -> new ProjectNotFoundException("Default project not found"));
-    }
-
-    @Transactional(readOnly = true)
     public List<TaskEntity> getAll() {
         return taskRepository.findAllByProject_User_Id(currentUserId());
     }
@@ -56,8 +50,11 @@ public class TaskService {
     }
 
     @Transactional
-    public TaskEntity create(String title, String description, Integer priority, Instant dueAt) {
+    public TaskEntity create(UUID projectId, String title, String description, Integer priority, Instant dueAt) {
         UUID userId = currentUserId();
+
+        ProjectEntity project = projectRepository.findByIdAndUser_Id(projectId, userId)
+                .orElseThrow(() -> new ProjectNotFoundException("Project not found"));
 
         TaskEntity task = new TaskEntity(
                 UUID.randomUUID(),
@@ -67,7 +64,7 @@ public class TaskService {
                 priority,
                 Instant.now(),
                 dueAt,
-                getDefaultProject(userId)
+                project
         );
 
         return taskRepository.save(task);

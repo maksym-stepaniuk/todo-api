@@ -7,10 +7,12 @@ import com.maksym.todoapi.exception.UnauthorizedException;
 import com.maksym.todoapi.repository.ProjectRepository;
 import com.maksym.todoapi.repository.UserRepository;
 import com.maksym.todoapi.security.UserContext;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
+@Service
 public class ProjectService {
 
     private final UserRepository userRepository;

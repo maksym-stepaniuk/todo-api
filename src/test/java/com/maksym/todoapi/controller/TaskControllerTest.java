@@ -13,6 +13,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 
+import java.util.UUID;
+
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -29,17 +31,21 @@ public class TaskControllerTest extends BaseIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    private static final String DEFAULT_USER_ID = "11111111-1111-1111-1111-111111111111";
+    private static final UUID DEFAULT_PROJECT_ID = UUID.fromString("22222222-2222-2222-2222-222222222222");
+
     @Test
     void createTask_shouldReturn201() throws Exception {
 
         TaskCreateRequest request = new TaskCreateRequest();
+        request.setProjectId(DEFAULT_PROJECT_ID);
         request.setTitle("Learn testing");
         request.setDescription("Test");
         request.setPriority(1);
 
         mockMvc.perform(post("/tasks")
                         .with(jwt())
-                        .header("X-User-Id", "11111111-1111-1111-1111-111111111111")
+                        .header("X-User-Id", DEFAULT_USER_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -52,12 +58,13 @@ public class TaskControllerTest extends BaseIntegrationTest {
     void createTask_invalidRequest_shouldReturn400() throws Exception {
 
         TaskCreateRequest request = new TaskCreateRequest();
+        request.setProjectId(DEFAULT_PROJECT_ID);
         request.setTitle("");
         request.setPriority(null);
 
         mockMvc.perform(post("/tasks")
                         .with(jwt())
-                        .header("X-User-Id", "11111111-1111-1111-1111-111111111111")
+                        .header("X-User-Id", DEFAULT_USER_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -71,7 +78,7 @@ public class TaskControllerTest extends BaseIntegrationTest {
 
         mockMvc.perform(get("/tasks/00000000-0000-0000-0000-000000000000")
                         .with(jwt())
-                        .header("X-User-Id", "11111111-1111-1111-1111-111111111111"))
+                        .header("X-User-Id", DEFAULT_USER_ID))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.error").value("Not Found"));
@@ -81,13 +88,14 @@ public class TaskControllerTest extends BaseIntegrationTest {
     void updateTask_shouldReturn200() throws Exception {
 
         TaskCreateRequest request = new TaskCreateRequest();
+        request.setProjectId(DEFAULT_PROJECT_ID);
         request.setTitle("old title");
         request.setDescription("old desc");
         request.setPriority(2);
 
         String response = mockMvc.perform(post("/tasks")
                     .with(jwt())
-                    .header("X-User-Id", "11111111-1111-1111-1111-111111111111")
+                    .header("X-User-Id", DEFAULT_USER_ID)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -107,7 +115,7 @@ public class TaskControllerTest extends BaseIntegrationTest {
 
         mockMvc.perform(put("/tasks/" + id)
                     .with(jwt())
-                    .header("X-User-Id", "11111111-1111-1111-1111-111111111111")
+                    .header("X-User-Id", DEFAULT_USER_ID)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(updatedJson))
                 .andExpect(status().isOk())
@@ -119,13 +127,14 @@ public class TaskControllerTest extends BaseIntegrationTest {
     void deleteTask_shouldReturn204() throws Exception {
 
         TaskCreateRequest request = new TaskCreateRequest();
+        request.setProjectId(DEFAULT_PROJECT_ID);
         request.setTitle("old title");
         request.setDescription("old desc");
         request.setPriority(2);
 
         String response = mockMvc.perform(post("/tasks")
                         .with(jwt())
-                        .header("X-User-Id", "11111111-1111-1111-1111-111111111111")
+                        .header("X-User-Id", DEFAULT_USER_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -137,7 +146,7 @@ public class TaskControllerTest extends BaseIntegrationTest {
 
         mockMvc.perform(delete("/tasks/" + id)
                         .with(jwt())
-                        .header("X-User-Id", "11111111-1111-1111-1111-111111111111"))
+                        .header("X-User-Id", DEFAULT_USER_ID))
                 .andExpect(status().isNoContent());
     }
 }

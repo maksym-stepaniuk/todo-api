@@ -93,6 +93,7 @@ public class TaskController {
             @Valid @RequestBody TaskCreateRequest request
     ) {
         TaskEntity task = taskService.create(
+                request.getProjectId(),
                 request.getTitle(),
                 request.getDescription(),
                 request.getPriority(),

@@ -10,4 +10,5 @@ public interface ProjectRepository extends JpaRepository<ProjectEntity, UUID> {
 
     Optional<ProjectEntity> findByIdAndUser_Id(UUID id, UUID userId);
     Optional<ProjectEntity> findFirstByUser_Id(UUID userId);
+    Boolean existsByUser_IdAndName(UUID userId, String name);
 }

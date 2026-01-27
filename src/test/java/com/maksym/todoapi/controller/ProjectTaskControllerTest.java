@@ -73,8 +73,7 @@ public class ProjectTaskControllerTest extends BaseIntegrationTest {
     @Test
     void listTasks_withFiltersSearchSortAndPagination() throws Exception {
         mockMvc.perform(get("/projects/" + project.getId() + "/tasks")
-                .with(jwt())
-                .header("X-User-Id", owner.getId().toString())
+                .with(jwt().jwt(jwt -> jwt.subject(owner.getId().toString())))
                 .param("status", "IN_PROGRESS")
                 .param("priority", "1")
                 .param("dueFrom", "2026-01-19T10:00:00Z")
@@ -95,8 +94,7 @@ public class ProjectTaskControllerTest extends BaseIntegrationTest {
     void listTasks_otherUserShouldNotSeeProject() throws Exception {
         UUID otherUser = UUID.randomUUID();
         mockMvc.perform(get("/projects/" + project.getId() + "/tasks")
-                .with(jwt())
-                .header("X-User-Id", otherUser.toString())
+                .with(jwt().jwt(jwt -> jwt.subject("11111111-1111-1111-1111-111111111112")))
         )
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
@@ -105,11 +103,8 @@ public class ProjectTaskControllerTest extends BaseIntegrationTest {
 
     @Test
     void listTasks_withoutHeader_shouldReturn401() throws Exception {
-        mockMvc.perform(get("/projects/" + project.getId() + "/tasks")
-                    .with(jwt()))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.status").value(401))
-                .andExpect(jsonPath("$.error").value("Unauthorized"));
+        mockMvc.perform(get("/projects/" + project.getId() + "/tasks"))
+                .andExpect(status().isUnauthorized());
     }
 
     private void saveTask(String title, String description, TaskStatus status, Integer priority, Instant createdAt, Instant dueAt) {

@@ -6,7 +6,7 @@ import com.maksym.todoapi.exception.ConflictException;
 import com.maksym.todoapi.exception.UnauthorizedException;
 import com.maksym.todoapi.repository.ProjectRepository;
 import com.maksym.todoapi.repository.UserRepository;
-import com.maksym.todoapi.security.UserContext;
+import com.maksym.todoapi.security.CurrentUser;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,21 +17,16 @@ public class ProjectService {
 
     private final UserRepository userRepository;
     private final ProjectRepository projectRepository;
+    private final CurrentUser currentUser;
 
-    public ProjectService(UserRepository userRepository, ProjectRepository projectRepository) {
+    public ProjectService(UserRepository userRepository, ProjectRepository projectRepository, CurrentUser currentUser) {
         this.userRepository = userRepository;
         this.projectRepository = projectRepository;
+        this.currentUser = currentUser;
     }
 
     private UUID currentUserId() {
-
-        UUID userId = UserContext.get();
-
-        if(userId == null) {
-            throw new UnauthorizedException("X-User-Id header is required");
-        }
-
-        return userId;
+        return currentUser.id();
     }
 
     @Transactional

@@ -44,8 +44,7 @@ public class TaskControllerTest extends BaseIntegrationTest {
         request.setPriority(1);
 
         mockMvc.perform(post("/tasks")
-                        .with(jwt())
-                        .header("X-User-Id", DEFAULT_USER_ID)
+                        .with(jwt().jwt(jwt -> jwt.subject(DEFAULT_USER_ID)))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -63,8 +62,7 @@ public class TaskControllerTest extends BaseIntegrationTest {
         request.setPriority(null);
 
         mockMvc.perform(post("/tasks")
-                        .with(jwt())
-                        .header("X-User-Id", DEFAULT_USER_ID)
+                        .with(jwt().jwt(jwt -> jwt.subject(DEFAULT_USER_ID)))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -77,8 +75,7 @@ public class TaskControllerTest extends BaseIntegrationTest {
     void getTask_notExisting_shouldReturn404() throws Exception {
 
         mockMvc.perform(get("/tasks/00000000-0000-0000-0000-000000000000")
-                        .with(jwt())
-                        .header("X-User-Id", DEFAULT_USER_ID))
+                        .with(jwt().jwt(jwt -> jwt.subject(DEFAULT_USER_ID))))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.error").value("Not Found"));
@@ -94,8 +91,7 @@ public class TaskControllerTest extends BaseIntegrationTest {
         request.setPriority(2);
 
         String response = mockMvc.perform(post("/tasks")
-                    .with(jwt())
-                    .header("X-User-Id", DEFAULT_USER_ID)
+                    .with(jwt().jwt(jwt -> jwt.subject(DEFAULT_USER_ID)))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -114,8 +110,7 @@ public class TaskControllerTest extends BaseIntegrationTest {
                 """;
 
         mockMvc.perform(put("/tasks/" + id)
-                    .with(jwt())
-                    .header("X-User-Id", DEFAULT_USER_ID)
+                    .with(jwt().jwt(jwt -> jwt.subject(DEFAULT_USER_ID)))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(updatedJson))
                 .andExpect(status().isOk())
@@ -133,8 +128,7 @@ public class TaskControllerTest extends BaseIntegrationTest {
         request.setPriority(2);
 
         String response = mockMvc.perform(post("/tasks")
-                        .with(jwt())
-                        .header("X-User-Id", DEFAULT_USER_ID)
+                        .with(jwt().jwt(jwt -> jwt.subject(DEFAULT_USER_ID)))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -145,8 +139,7 @@ public class TaskControllerTest extends BaseIntegrationTest {
         String id = objectMapper.readTree(response).get("id").asText();
 
         mockMvc.perform(delete("/tasks/" + id)
-                        .with(jwt())
-                        .header("X-User-Id", DEFAULT_USER_ID))
+                        .with(jwt().jwt(jwt -> jwt.subject(DEFAULT_USER_ID))))
                 .andExpect(status().isNoContent());
     }
 }

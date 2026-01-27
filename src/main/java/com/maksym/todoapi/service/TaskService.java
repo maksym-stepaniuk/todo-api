@@ -4,11 +4,10 @@ import com.maksym.todoapi.entity.ProjectEntity;
 import com.maksym.todoapi.entity.TaskEntity;
 import com.maksym.todoapi.exception.ProjectNotFoundException;
 import com.maksym.todoapi.exception.TaskNotFoundException;
-import com.maksym.todoapi.exception.UnauthorizedException;
 import com.maksym.todoapi.model.TaskStatus;
 import com.maksym.todoapi.repository.ProjectRepository;
 import com.maksym.todoapi.repository.TaskRepository;
-import com.maksym.todoapi.security.UserContext;
+import com.maksym.todoapi.security.CurrentUser;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,18 +23,16 @@ import static com.maksym.todoapi.repository.TaskSpecifications.*;
 public class TaskService {
     private final TaskRepository taskRepository;
     private final ProjectRepository projectRepository;
+    private final CurrentUser currentUser;
 
-    public TaskService(TaskRepository taskRepository, ProjectRepository projectRepository) {
+    public TaskService(TaskRepository taskRepository, ProjectRepository projectRepository, CurrentUser currentUser) {
         this.taskRepository = taskRepository;
         this.projectRepository = projectRepository;
+        this.currentUser = currentUser;
     }
 
     private UUID currentUserId() {
-        UUID userId = UserContext.get();
-        if(userId == null) {
-            throw new UnauthorizedException("X-User-Id header is required");
-        }
-        return userId;
+        return currentUser.id();
     }
 
     @Transactional(readOnly = true)

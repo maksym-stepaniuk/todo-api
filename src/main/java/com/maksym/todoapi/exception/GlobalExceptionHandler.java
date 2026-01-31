@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-import org.springframework.security.access.AccessDeniedException;
 import java.util.List;
 
 
@@ -89,12 +88,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleConflict(HttpServletRequest request, ConflictException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(build(HttpStatus.CONFLICT, ex.getMessage(), request, null));
-    }
-
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorResponse> handleAccessDenied(HttpServletRequest request, AccessDeniedException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(build(HttpStatus.FORBIDDEN, "Forbidden", request, null));
     }
 
     @ExceptionHandler(Exception.class)

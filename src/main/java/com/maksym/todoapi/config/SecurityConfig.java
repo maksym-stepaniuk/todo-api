@@ -1,11 +1,12 @@
 package com.maksym.todoapi.config;
 
+import com.maksym.todoapi.security.RestAccessDeniedHandler;
+import com.maksym.todoapi.security.RestAuthenticationEntryPoint;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -19,15 +20,27 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 @EnableMethodSecurity
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    private final RestAccessDeniedHandler accessDeniedHandler;
+    private final RestAuthenticationEntryPoint authenticationEntryPoint;
+
+    public SecurityConfig(RestAuthenticationEntryPoint authenticationEntryPoint, RestAccessDeniedHandler accessDeniedHandler) {
+        this.authenticationEntryPoint = authenticationEntryPoint;
+        this.accessDeniedHandler = accessDeniedHandler;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -41,9 +54,17 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth ->
                         auth
                                 .requestMatchers("/auth/**").permitAll()
+                                .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
                                 .anyRequest().authenticated())
-                .oauth2ResourceServer(oauth2 ->
-                        oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
+                .oauth2ResourceServer(oauth2 -> oauth2
+                                .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
+                                .accessDeniedHandler(accessDeniedHandler)
+                                .authenticationEntryPoint(authenticationEntryPoint)
+                )
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .exceptionHandling(ex -> ex
+                        .accessDeniedHandler(accessDeniedHandler)
+                        .authenticationEntryPoint(authenticationEntryPoint)
                 );
 
         return http.build();
@@ -75,5 +96,18 @@ public class SecurityConfig {
         JwtAuthenticationConverter jwtConverter = new JwtAuthenticationConverter();
         jwtConverter.setJwtGrantedAuthoritiesConverter(converter);
         return jwtConverter;
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of("http://localhost:3000"));
+        config.setAllowedMethods(List.of("GET", "PATCH", "PUT", "DELETE", "POST", "OPTIONS"));
+        config.setAllowedHeaders(List.of("Content-Type", "Authorization"));
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 }

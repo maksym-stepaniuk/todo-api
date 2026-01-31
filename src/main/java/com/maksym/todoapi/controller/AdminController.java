@@ -9,7 +9,6 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -24,7 +23,6 @@ public class AdminController {
     }
 
     @GetMapping("/users")
-    @PreAuthorize("hasRole('ADMIN')")
     public PageResponse<AdminUserResponse> listUsers(Pageable pageable) {
         Page<UserEntity> page = adminUserService.list(pageable);
 
@@ -41,7 +39,6 @@ public class AdminController {
     }
 
     @PatchMapping("/users/{id}/role")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AdminUserResponse> updateRole(@PathVariable UUID id, @Valid @RequestBody RoleUpdateRequest request) {
         UserEntity user = adminUserService.updateUserRole(id, request.getAdmin());
 

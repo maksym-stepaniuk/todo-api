@@ -1,10 +1,11 @@
 package com.maksym.todoapi;
 
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 
-
+@ActiveProfiles("test")
 public abstract class BaseIntegrationTest {
 
     static PostgreSQLContainer<?> POSTGRES =
